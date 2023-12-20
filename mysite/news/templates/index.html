@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}
+新闻网-首页
+{% endblock %}
+
+
+{% block main %}
+{% include 'nav.html' %}
+
+<div class="container">
+  <div class="row">
+
+
+    <div class="col-md-8 col-md-offset-2">
+      <div>
+
+        <!-- Nav tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+          {% for c in cs %}
+          {% if forloop.first %}
+          <li role="presentation" class="active"><a href="#tab{{c.id}}" aria-controls="tab{{c.id}}" role="tab"
+              data-toggle="tab">{{c.name}}</a></li>
+          {% else %}
+          <li role="presentation"><a href="#tab{{c.id}}" aria-controls="tab{{c.id}}" role="tab"
+              data-toggle="tab">{{c.name}}</a></li>
+          {% endif %}
+          {% empty %}
+          <div>目前没有数据</div>
+          {% endfor %}
+
+
+
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+
+          {% for c in cs %}
+          {% if forloop.first %}
+          <div role="tabpanel" class="tab-pane active" id="tab{{c.id}}">
+            {% else %}
+            <div role="tabpanel" class="tab-pane" id="tab{{c.id}}">
+              {% endif %}
+              <ul class="list-group">
+                {% for n in c.news_set.all %}
+                <li class="list-group-item">
+                  <a target="_blank" href='{% url "news:detail" n.id %}'>{{n.title}}</a>
+                </li>
+                {% endfor %}
+              </ul>
+
+            </div>
+            {% endfor %}
+
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {% endblock %}

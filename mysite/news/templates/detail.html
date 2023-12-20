@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load extend_filter %}
+{% block title %}
+新闻网-详情
+{% endblock %}
+
+{% block css %}
+<style>
+  .collect{
+    float: right;
+    margin-top: -25px;
+  }
+
+  .comments .comment{
+    display: flex;
+    border-radius: 10px;
+    border: 1px solid lightblue;
+    margin-bottom: 10px;
+    overflow: hidden;
+
+  }
+  .comments .comment .left{
+    width: 10%;
+    margin-right: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .comments .comment .left img{
+    width: 80%;
+    border-radius: 50%;
+  }
+
+  .comments .comment .right{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .comments .comment .right .name{
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+ 
+  }
+  .comments .comment .right .content{
+    text-indent: 2em;
+  }
+  .comments .comment .right .time{
+    border-top: 1px solid lightgray;
+    text-align: right;
+    padding-right: 20px;
+    
+  }
+
+  .add_comment{
+    padding-bottom: 20px;
+  }
+  .add_comment button{
+    margin-top: 5px;
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+{% include 'nav.html' %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          {{n.title}}
+        </div>
+        <div class="panel-body">
+          {% autoescape off %}
+          {{n.content}}
+          {% endautoescape %}
+        </div>
+        <div class="panel-footer">
+          <span class="time">
+            {{n.time}}
+            <br>
+
+            {% csrf_token %}
+            <input type="hidden" name="nid" value="{{n.id}}">
+
+
+            <div class="collect">
+              {% if request.user.is_authenticated and  n|is_collect:request.user %}
+              <img src="/static/img/collect.png" alt="">
+              <span>取消</span>
+              {% else %}
+              <img src="/static/img/collect2.png" alt="">
+              <span>收藏</span>
+              {% endif %}
+            </div>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-8 col-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          评论列表
+        </div>
+
+        <div class="panel-body">
+          <div class="add_comment">
+            <textarea class="form-control" rows="3"></textarea>
+            <button type="button" class="btn btn-info">发表</button>
+          </div>
+          <div class="comments">
+            
+            {% for c in n.comment_set.all %}
+            <div class="comment">
+              <div class="left"><img src="/media/{{ c.user.head }}" ></div>
+              <div class="right">
+                <div class="name">{{c.user.username}}</div>
+                <div class="content">{{c.content}}</div>
+                <div class="time">{{c.time}}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+
+{% block js %}
+<script>
+  $(function () {
+    $(".collect").click(function(){
+      $.ajax({
+        url:"/operate/collect/",
+        method:"post",
+        data:{
+          "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+          "nid": $("[name='nid']").val(),
+        },
+        success:function(data){
+          if(data.code == 0){
+            if(data.state==1){
+              $(".collect img").attr("src", "/static/img/collect.png")
+              $(".collect span").text("取消")
+
+            }
+            else{
+              $(".collect img").attr("src", "/static/img/collect2.png")
+              $(".collect span").text("收藏")
+            }
+          }
+          else{
+            alert(data.msg)
+          }
+        }
+      })
+    })
+
+  })
+</script>
+
+
+<script>
+  $(function(){
+
+    $(".add_comment button").click(function(){
+      let content = $(".add_comment textarea").val()
+      if(content!=""){
+        $.ajax({
+          url:"/operate/comment/",
+          method:"post",
+          data:{
+            "nid": $("[name='nid']").val(),
+            "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            "content": content
+          },
+          success:function(data){
+            $(".comments").append(`
+            <div class="comment">
+              <div class="left"><img src="${data.data.head}" ></div>
+              <div class="right">
+                <div class="name">${data.data.username}</div>
+                <div class="content">${content}</div>
+                <div class="time">${data.data.time}</div>
+              </div>
+            </div>
+            
+            `);
+
+            $(".add_comment textarea").val("");
+          }
+        })
+      }
+      else{
+        alert("评论内容不能为空");
+      }
+    })
+  })
+</script>
+{% endblock %}

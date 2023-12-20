@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}
+新闻网-登录
+{% endblock %}
+
+{% block main %}
+<script src="https://cdn.dingxiang-inc.com/ctu-group/captcha-ui/v5/index.js" crossorigin="anonymous"
+    id="dx-captcha-script"></script>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div>
+
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#email_tab" aria-controls="email_tab" role="tab"
+                            data-toggle="tab">用户名密码登录</a></li>
+                    <li role="presentation"><a href="#telephone_tab" aria-controls="telephone_tab" role="tab"
+                            data-toggle="tab">手机号登录</a></li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="email_tab">
+                        {% if next %}
+                        <form class="form-horizontal" action="{% url 'user:login' %}?next={{next}}" method="post">
+                            {% else %}
+                            <form class="form-horizontal" action="{% url 'user:login' %}" method="post">
+                                {% endif %}
+                                <div class="form-group">
+                                    <label for="email" class="col-sm-2 control-label">邮箱</label>
+                                    <div class="col-sm-10">
+                                        <input required type="email" name="email" class="form-control" id="email"
+                                            placeholder="请输入邮箱">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password" class="col-sm-2 control-label">密码</label>
+                                    <div class="col-sm-10">
+                                        <input required type="password" name="password" class="form-control"
+                                            id="password" placeholder="请输入密码">
+                                    </div>
+                                </div>
+                                {% if error %}
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <p class="text-danger">{{error}}</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <div id="demo-popup"></div>
+                                        <button type="submit" class="btn btn-default">登录</button>
+                                        <a class="btn btn-default" href="{% url 'user:regist' %}"
+                                            role="button">没有账号,去注册</a>
+                                    </div>
+                                </div>
+                                {% csrf_token %}
+                            </form>
+                    </div>
+                    <div role="tabpanel" class="tab-pane " id="telephone_tab">
+                        <div id="c1"></div>
+                        <!-- <script>
+                            var myCaptcha = _dx.Captcha(document.getElementById('c1'), {
+                            appId: 'ffdafefea55e62c87267794a266c2d24', //appId，在控制台应用管理或应用配置模块获取
+                            apiServer: 'https://api-vip.dingxiang-inc.com',
+                            // apiServer域名地址在控制台页面->无感验证->应用管页面左上角获取，必须填写完整包括https://。
+                            success: function (token) {
+                                console.log('token:', token)
+                            // 获取验证码token，用于后端校验，注意获取token若是sl开头的字符串，则是前端网络不通生成的降级token,请检查前端网络及apiServer地址。
+                            }
+                        }) -->
+                        </script>
+
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="input_telephone" placeholder="输入手机号">
+                            <button type="button" class="btn btn-primary" id="send_code">发送验证码</button>
+                        </div>
+
+
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="input_code" placeholder="输入验证码">
+                            <button type="button" class="btn btn-primary" id="send_login">登录</button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+
+
+
+
+
+
+
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block js %}
+
+<script>
+    $(function () {
+        $("#send_login").click(function () {
+
+            let telephone_content = $("#input_telephone").val()
+            let code_content = $("#input_code").val()
+
+            if (telephone_content == "" || code_content == "") {
+                alert("手机号和验证码都不能为空")
+            }
+            else {
+                telephone_content = telephone_content.trim()
+                if (!(/^1[3456789]\d{9}$/.test(telephone_content))) {
+                    alert("手机号码有误，请重填");
+                }
+                else {
+                    $.ajax({
+                        url: "/user/login/",
+                        method: "post",
+                        data: {
+                            "login_type": "telephone_login",
+                            "telephone": telephone_content,
+                            "login_code": code_content,
+                            "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                        },
+                        success: function (data) {
+                            if (data.code == 0) {
+                                location.href = "http://127.0.0.1:8000/"
+                            }
+                            else {
+                                alert(data.msg)
+                            }
+                        }
+                    })
+                }
+            }
+        })
+    })
+</script>
+
+
+<script>
+    $(function () {
+        $("#send_code").click(function () {
+
+
+
+            let content = $("#input_telephone").val()
+            if (content == "") {
+                alert("手机号不能为空")
+            }
+            else {
+                content = content.trim()
+                if (!(/^1[3456789]\d{9}$/.test(content))) {
+                    alert("手机号码有误，请重填");
+                }
+                else {
+                    _dx.Captcha(document.getElementById('c1'), {
+                        style: 'popup',
+                        appId: 'ffdafefea55e62c87267794a266c2d24', //appId，在控制台应用管理或应用配置模块获取
+                        apiServer: 'https://api-vip.dingxiang-inc.com',
+                        // apiServer域名地址在控制台页面->无感验证->应用管页面左上角获取，必须填写完整包括https://。
+                        success: function (token) {
+                            console.log('token:', token)
+                            // 获取验证码token，用于后端校验，注意获取token若是sl开头的字符串，则是前端网络不通生成的降级token,请检查前端网络及apiServer地址。
+                            $.ajax({
+                                url: "/user/change_telephone/",
+                                method: "post",
+                                data: {
+                                    "token": token,
+                                    "code_type": "login_code",
+                                    "telephone": content,
+                                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                                },
+                                success: function (data) {
+                                    console.log(data);
+                                }
+                            })
+                        }
+                    }).show()
+
+
+
+
+
+                }
+            }
+        })
+    })
+</script>
+{% endblock %}

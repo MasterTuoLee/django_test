@@ -1,0 +1,100 @@
+在线演示Demo
+https://cdn.dingxiang-inc.com/ctu-group/captcha-ui/demo/
+
+开发文档
+https://www.dingxiang-inc.com/docs/detail/captcha#doc-h3-10
+
+
+从后台获取以下信息
+APIServer: https://api-vip.dingxiang-inc.com
+AppId: ffdafefea55e62c87267794a266c2d24
+appSecret: 31610208a346cf04fbe6eaa929876f10
+
+
+前端集成：
+1. <script src="https://cdn.dingxiang-inc.com/ctu-group/captcha-ui/v5/index.js" crossorigin="anonymous" id="dx-captcha-script"></script>
+2. <div id="c1"></div>
+3.                         <script>
+                            var myCaptcha = _dx.Captcha(document.getElementById('c1'), {
+                            appId: 'ffdafefea55e62c87267794a266c2d24', //appId，在控制台应用管理或应用配置模块获取
+                            apiServer: 'https://api-vip.dingxiang-inc.com',
+                            // apiServer域名地址在控制台页面->无感验证->应用管页面左上角获取，必须填写完整包括https://。
+                            success: function (token) {
+                                console.log('token:', token)
+                            // 获取验证码token，用于后端校验，注意获取token若是sl开头的字符串，则是前端网络不通生成的降级token,请检查前端网络及apiServer地址。
+                            }
+                        })
+                        </script>
+4. 点击发送按钮 弹出验证
+$("#send_code").click(function () {
+
+
+
+            let content = $("#input_telephone").val()
+            if (content == "") {
+                alert("手机号不能为空")
+            }
+            else {
+                content = content.trim()
+                if (!(/^1[3456789]\d{9}$/.test(content))) {
+                    alert("手机号码有误，请重填");
+                }
+                else {
+                    _dx.Captcha(document.getElementById('c1'), {
+                        style: 'popup',
+                        appId: 'ffdafefea55e62c87267794a266c2d24', //appId，在控制台应用管理或应用配置模块获取
+                        apiServer: 'https://api-vip.dingxiang-inc.com',
+                        // apiServer域名地址在控制台页面->无感验证->应用管页面左上角获取，必须填写完整包括https://。
+                        success: function (token) {
+                            console.log('token:', token)
+                            // 获取验证码token，用于后端校验，注意获取token若是sl开头的字符串，则是前端网络不通生成的降级token,请检查前端网络及apiServer地址。
+                            $.ajax({
+                                url: "/user/change_telephone/",
+                                method: "post",
+                                data: {
+                                    "token": token,
+                                    "code_type": "login_code",
+                                    "telephone": content,
+                                    "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+                                },
+                                success: function (data) {
+                                    console.log(data);
+                                }
+                            })
+                        }
+                    }).show()
+
+
+
+
+
+                }
+            }
+        })
+						
+						
+服务器集成
+1. 将client放在项目根目录(需要再某些导入之前加.)
+2. 封装check_token
+3. 检测token确定是否要真正发送验证码
+f request.method == "POST":
+        token = request.POST.get("token")
+        if check_token(token):
+            telephone = request.POST.get("telephone")
+            code_type = request.POST.get("code_type", "change_telephone_code")
+
+            code_str = generate_code()
+            TelephoneCode.objects.create(telephone=telephone, code=code_str, code_type=code_type)
+            print(f"向手机号{telephone} 发送验证码{code_str}")
+            data = send(code_str, telephone)
+
+            return JsonResponse({
+                "code": 0,
+                "msg": "发送成功",
+                "data": data
+            })
+        else:
+            return JsonResponse({
+                "code": -1,
+                "msg": "位置错误"
+            })

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block css %}
+<style>
+    .items .panel-footer {
+        display: flex;
+        justify-content: space-around;
+    }
+</style>
+{% endblock %}
+{% block main %}
+{% include 'nav.html' %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="items">
+
+            </div>
+            <button id="getmore" type="button" class="btn btn-warning">查看更多</button>
+
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block js %}
+<script>
+    $(function () {
+        let current_page = 1;
+        let has_next = true;
+        let can_getmore = true;
+        function load_data(page_num) {
+            $.ajax({
+                url: "/pagedemo/loaddata/",
+                method: "get",
+                data: {
+                    page_num: page_num,
+                },
+                success: function (data) {
+                    // console.log(data);
+                    if (data.code == 0) {
+                        can_getmore=true
+                        has_next = data.data.has_next;
+                        current_page++;
+                        data.data.datas.forEach(function (item) {
+                            $(".items").append(`
+                        <div class="panel panel-default">
+                    <div class="panel-body">
+                        ${item.title}
+                    </div>
+                    <div class="panel-footer">
+                        <div class="time">
+                        发布时间：${item.time}
+                        </div>
+                        <div class="viewcount">
+                            阅读量：${item.viewcount}
+
+                        </div>
+                    </div>
+                </div>
+                        `)
+                        })
+                    }
+                }
+            })
+        }
+        load_data(current_page)
+        $("#getmore").click(function () {
+            if (has_next && can_getmore) {
+                can_getmore = false
+                load_data(current_page);
+            }
+            else {
+                alert("没有更多数据");
+            }
+        })
+        $(window).scroll(function () {
+            let clientHeight = document.documentElement.clientHeight;
+            let scrollHeight = document.documentElement.scrollHeight;
+            let scrollTop = document.documentElement.scrollTop
+            // 如果滚动到最底部，则scrollHeight=clientHeight+scrollTop
+            // 滚动到距离底部100，scrollHeight-100=clientHeight+scrollTop
+            if (has_next && can_getmore) {
+                if (scrollTop + clientHeight > scrollHeight - 100) {
+                    load_data(current_page);
+                    can_getmore==false
+                }
+            }
+            else {
+                alert("没有更多数据")
+            }
+
+        })
+    })
+</script>
+
+<script>
+
+</script>
+{% endblock %}

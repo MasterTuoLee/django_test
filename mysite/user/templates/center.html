@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% block title %}
+新闻网-个人中心
+{% endblock %}
+
+{% block css %}
+
+<style>
+  .head {
+    width: 120px;
+    height: 120px;
+    position: relative;
+  }
+
+  .head input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+  }
+
+  .head img {
+    width: 100%;
+    border-radius: 50%;
+  }
+</style>
+
+{% endblock %}
+
+
+{% block main %}
+{% include 'nav.html' %}
+
+<div class="container">
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">个人中心</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6">
+              <ul class="list-group">
+                <li class="list-group-item">用户名: <input name="username" value="{{ request.user.username }}"> <button
+                    id="change_username">修改</button></li>
+                <li class="list-group-item">注册时间: {{ request.user.date_joined }}</li>
+                <li class="list-group-item">拥有金币: {{ request.user.money }} <a href="/pay/goodlist" >去充值</a> </li>
+                <li class="list-group-item">上次登录时间: {{ request.user.last_login }}</li>
+                {% if request.user.telephone %}
+                <li class="list-group-item current_telephone">手机号：{{ request.user.telephone }}</li>
+                {% else %}
+                <li class="list-group-item current_telephone">手机号：尚未绑定</li>
+                {% endif %}
+                <li class="list-group-item"> <input value="15138001200" name="telephone" placeholder="请输入要绑定的手机号" type="text"> <button id="change_telephone">发送验证码</button>  </li>
+                <li class="list-group-item"> <input  name="code" placeholder="请输入验证吗" type="text"> <button id="modify_telephone">绑定</button>  </li>
+                
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <div class="head">
+                <img src="/media/{{request.user.head}}" alt="">
+                <input type="file">
+                {% csrf_token %}
+              </div>
+              <span>点击头像可以更换</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+
+{% block js %}
+
+<script>
+  $(function(){
+    $("#modify_telephone").click(function(){
+      let content = $("[name='code']").val()
+      if(content==""){
+        alert("验证码不能为空")
+      }
+      else{
+        $.ajax({
+          url:"/user/modify_telephone/",
+          method: "post",
+          data: {
+            "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+            "code": content,
+            "telephone": $("[name='telephone']").val()
+          },
+          success:function(data){
+            alert(data.msg)
+            if(data.code == 0){
+              $(".current_telephone").text(`手机号：${$("[name='telephone']").val()}`)
+            }
+          }
+        })
+      }
+    })
+  })
+</script>
+
+<script>
+  $(function(){
+    $("#change_telephone").click(function(){
+      $("#change_telephone").attr("disabled", true);
+      let content = $("[name='telephone']").val()
+      if(content==""){
+        alert("手机号不能为空")
+      }
+      else{
+        content = content.trim()
+        if(!(/^1[3456789]\d{9}$/.test(content))){ 
+            alert("手机号码有误，请重填");  
+        } 
+        else{
+          $.ajax({
+            url:"/user/change_telephone/",
+            method:"post",
+            data:{
+              "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val(),
+              "telephone": content
+            },
+            success:function(data){
+              alert(data.msg)
+              $("#change_telephone").attr("disabled", false);
+
+            }
+
+          })
+        }
+      }
+    })
+
+  })
+</script>
+
+
+<script>
+  $(function () {
+    $(".head input").change(function () {
+      let fd = new FormData();
+      fd.append("csrfmiddlewaretoken", $("[name='csrfmiddlewaretoken']").val());
+      fd.append("file", $("[type='file']")[0].files[0]);
+
+
+      $.ajax({
+        url: "/user/change_head/",
+        method: "post",
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function (data) {
+          console.log(data);
+          if (data.code == 0) {
+            $(".head img").attr("src", data.data.head)
+          }
+        }
+      })
+    })
+  })
+
+
+</script>
+
+<script>
+  $(function(){
+    $("#change_username").click(function(){
+      let content = $("[name='username']").val();
+      if(content == ""){
+        alert("用户名不能为空");
+      }
+      else{
+        $.ajax({
+          url: "/user/change_username/",
+          method:"post",
+          data:{
+            "username": content,
+            "csrfmiddlewaretoken": $("[name='csrfmiddlewaretoken']").val()
+          },
+          success:function(data){
+            alert(data.msg);
+            $(".nav .dropdown>a").html(`${content}<span class="caret"></span>`);
+          }
+        })
+      }
+    })
+
+  })
+
+
+</script>
+{% endblock %}

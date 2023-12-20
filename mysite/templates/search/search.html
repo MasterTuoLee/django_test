@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+新闻网-搜索结果
+{% endblock %}
+
+
+{% block main %}
+{% include 'nav.html' %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            {% if query %}
+            <h3>搜索结果</h3>
+
+            <ul class="list-group">
+                {% for result in page.object_list %}
+
+
+                <li class="list-group-item">
+                    <a href="{% url 'news:detail' result.object.id %}">{{ result.object.title }}</a>
+                </li>
+                {% endfor %}
+
+            </ul>
+
+
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

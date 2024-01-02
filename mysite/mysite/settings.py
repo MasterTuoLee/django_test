@@ -24,7 +24,6 @@ SECRET_KEY = 'django-insecure-($y3%g1stifgm%ay+05o$v6wyzsxahms1*iy7593w*v)tg$z4+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 # 设置为 ALLOWED_HOSTS = ["*"]后指定具体IP端口打开外部就可以进行访问：python.exe .\manage.py runserver 192.168...:6789
 ALLOWED_HOSTS = ["*"]
 
@@ -92,10 +91,20 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test',
+        'USER': 'root',
+        'PASSWORD': '123123',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -64,10 +64,7 @@ MIDDLEWARE = [
     # 自定义的中间件
     # 'mysite.middleware.TestMiddleWare',
     # 'mysite.middleware.UserAgentMiddleWare',
-    'mysite.middleware.UserIpForbidden',
-
-
-
+    # 'mysite.middleware.UserIpForbidden',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
